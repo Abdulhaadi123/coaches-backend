@@ -2,7 +2,7 @@ import type { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { createCheckoutSession } from '../services/stripe.service.js';
 import User from '../models/User.model.js';
-import stripe from '../services/stripe.service.js';
+import getStripe from '../services/stripe.service.js';
 
 export const createPaymentSession = async (req: AuthRequest, res: Response) => {
   try {
@@ -47,7 +47,7 @@ export const verifyPaymentSession = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === 'paid' && session.metadata?.userId === userId) {
       const user = await User.findById(userId);

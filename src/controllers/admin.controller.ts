@@ -370,8 +370,8 @@ export const sendUpgradeLink = async (req: AuthRequest, res: Response) => {
     }
 
     // Create Stripe checkout session
-    const stripe = (await import('../services/stripe.service.js')).default;
-    const session = await stripe.checkout.sessions.create({
+    const getStripe = (await import('../services/stripe.service.js')).default;
+    const session = await getStripe().checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       customer_email: user.email,

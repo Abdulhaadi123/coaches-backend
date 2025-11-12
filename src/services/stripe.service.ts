@@ -3,13 +3,20 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
-}
+// Lazy initialization - only create Stripe instance when needed
+let stripe: Stripe | null = null;
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-10-29.clover'
-});
+const getStripe = () => {
+  if (!stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
+    }
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-10-29.clover'
+    });
+  }
+  return stripe;
+};
 
 export const createCheckoutSession = async (
   priceId: string,
@@ -18,7 +25,7 @@ export const createCheckoutSession = async (
   planType: string = 'Pro',
   billingCycle: string = 'Monthly'
 ) => {
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
     line_items: [
@@ -41,11 +48,11 @@ export const createCheckoutSession = async (
 }
 
 export const getSubscription = async (subscriptionId: string) => {
-  return await stripe.subscriptions.retrieve(subscriptionId);
+  return await getStripe().subscriptions.retrieve(subscriptionId);
 };
 
 export const cancelSubscription = async (subscriptionId: string) => {
-  return await stripe.subscriptions.cancel(subscriptionId);
+  return await getStripe().subscriptions.cancel(subscriptionId);
 };
 
-export default stripe;
+export default getStripe;

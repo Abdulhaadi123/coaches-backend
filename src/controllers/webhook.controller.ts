@@ -1,12 +1,10 @@
 import type { Request, Response } from 'express';
 import Stripe from 'stripe';
 import User from '../models/User.model.js';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-10-29.clover'
-});
+import getStripe from '../services/stripe.service.js';
 
 export const handleStripeWebhook = async (req: Request, res: Response) => {
+  const stripe = getStripe();
   const sig = req.headers['stripe-signature'];
 
   if (!sig) {
