@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 5000;
 
 // CORS Configuration - MUST be before any routes
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL?.trim(),
   'https://coaches-frontend-eosin.vercel.app',
   'http://localhost:3000' // For local development
 ].filter(Boolean);
@@ -44,9 +44,6 @@ app.use(cors({
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
-
-// Handle preflight requests
-app.options('*', cors());
 
 // Webhook route BEFORE express.json() middleware
 app.use('/api/webhook', webhookRoutes);
