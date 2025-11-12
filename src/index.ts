@@ -16,18 +16,18 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Webhook route BEFORE express.json() middleware
-app.use('/api/webhook', webhookRoutes);
-
-// CORS Configuration
+// CORS Configuration - MUST be before any routes
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'https://coaches-frontend-eosin.vercel.app',
   'http://localhost:3000' // For local development
 ].filter(Boolean);
 
+console.log('CORS allowed origins:', allowedOrigins);
+
 app.use(cors({
   origin: (origin, callback) => {
+    console.log('Request from origin:', origin);
     // Allow requests with no origin (like mobile apps or Postman)
     if (!origin) return callback(null, true);
 
@@ -35,13 +35,21 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('Blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+      callback(null, true); // Temporarily allow all for debugging
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Handle preflight requests
+app.options('*', cors());
+
+// Webhook route BEFORE express.json() middleware
+app.use('/api/webhook', webhookRoutes);
 
 // Middleware
 app.use(express.json());
